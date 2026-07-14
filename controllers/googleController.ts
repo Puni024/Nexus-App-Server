@@ -1,34 +1,36 @@
-import { OAuth2Client } from "google-auth-library";
-// import {createUser} from "./userController
+import { Request, Response } from "express";
+import { googleLoginOrSignup } from "../services/authService";
+import { COOKIE_OPTIONS } from "../services/cookies";
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+export const googleLogin = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const googleToken = req.body.token;
 
-
-
-export const verifyGoogleToken = async (req: any, res: any,) => {
-
-    console.log("aaaaaaaaa",req);
-    
-    try {
-        console.log("sssssss",req);
-        
-        if (!req.body.token) {
-            return res.status(400).json({ error: "Token is required" });
-        }
-
-        const ticket = await client.verifyIdToken({
-            idToken: req.body.token,
-            audience: process.env.GOOGLE_CLIENT_ID,
-        });
-
-        const payload = ticket.getPayload();
-
-        console.log("Google token verified successfully:", payload);
-
-        return res.json({ success: true, payload });
-
-    } catch (error) {
-        console.error("❌ Error verifying Google token:", error);
-        return res.status(401).json({ error: "Invalid Google token" });
+    if (!googleToken) {
+      return res.status(400).json({
+        success: false,
+        message: "Google token is required",
+      });
     }
-}
+
+    const { token } = await googleLoginOrSignup(
+      googleToken
+    );
+
+    res.cookie("token", token, COOKIE_OPTIONS);
+
+    return res.status(200).json({
+      success: true,
+      message: "Google login successful",
+    });
+  } catch (err: any) {
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+

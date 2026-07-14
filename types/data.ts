@@ -1,4 +1,13 @@
+import { Request } from "express";
+
+
 type signedwith_type = "google" | "email";
+
+export interface JwtPayload {
+  id: string;
+  name: string;
+  isAdmin: boolean;
+}
 
 export interface User {
     id?: string;
@@ -10,4 +19,7 @@ export interface User {
     signedwith: signedwith_type,
     isVerified?: boolean,
     isActive?: boolean,
+}
+export interface AuthRequest extends Request {
+  user?: JwtPayload;
 }

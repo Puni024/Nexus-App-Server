@@ -3,34 +3,36 @@ dotenv.config();
 
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 
 import { sequelize } from "./config/db";
 import { initDB } from "./config/initDB";
 
 import "./models";
 
-import userRoutes from "./routes/userRoutes";
+import authRoutes from "./routes/authRoutes";
 
 const app = express();
 
-
-app.use(cors({
+app.use(
+  cors({
     origin: "http://localhost:5173",
     credentials: true,
-  }));
+  })
+);
+
+// app.use(cookieParser());
+
 app.use(express.json());
 
-
-
-app.use("/api/users", userRoutes);
-
+app.use("/api/auth", authRoutes);
 
 const PORT = process.env.PORT || 5000;
 
 (async () => {
   try {
-
     await initDB();
+
     await sequelize.authenticate();
     console.log("✅ PostgreSQL Connected Successfully");
 
@@ -38,11 +40,9 @@ const PORT = process.env.PORT || 5000;
     console.log("✅ Database synchronized successfully");
 
     app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+      console.log(`🚀 Server running on port ${PORT}`);
     });
-
-  } catch (error) {
-    console.error("❌ Server Connection failed");
-    console.error(error);
+  } catch (err) {
+    console.error(err);
   }
 })();
