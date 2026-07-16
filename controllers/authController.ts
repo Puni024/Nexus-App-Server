@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
-import { AuthRequest } from "../types/data";
+import { AuthRequest, UserType } from "../types/data";
 import { loginUser, registerUser } from "../services/authService";
 import { COOKIE_OPTIONS } from "../services/cookies";
+import { User } from "../models";
 
 export const register = async (req: Request, res: Response) => {
     try {
@@ -21,11 +22,18 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
     try {
+        
+        // Cast via unknown to satisfy TypeScript when using the ORM model return type
+        const user = await User.findOne({ where: { email: req.body.email } }) as unknown as UserType | null;
+        
+        if (user?.signedwith === "google") {
+            throw new Error("Invalid Credentials");
+        }
+        
         const { token } = await loginUser(
             req.body.email,
             req.body.password
         );
-
 
         res.cookie("token", token, COOKIE_OPTIONS);
 
@@ -53,7 +61,9 @@ export const logout = async (req: Request, res: Response) => {
 export const verify = async (req: AuthRequest, res: Response) => {
     if (req.user) {
         return res.status(200).json({
-            verification: true,
+            user: req.user.name,
+            success: true,
+            message: "User authenticated",
         });
     }
     else {

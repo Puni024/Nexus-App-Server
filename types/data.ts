@@ -9,7 +9,7 @@ export interface JwtPayload {
   isAdmin: boolean;
 }
 
-export interface User {
+export interface UserType {
     id?: string;
     name: string;
     email: string;

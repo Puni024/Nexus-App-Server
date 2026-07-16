@@ -6,6 +6,7 @@ import {
   register,
   verify,
 } from "../controllers/authController";
+import { users } from "../controllers/userController";
 
 import { googleLogin } from "../controllers/googleController";
 
@@ -31,6 +32,8 @@ router.post("/google", googleLogin);
 |--------------------------------------------------------------------------
 */
 router.get("/verify", authMiddleware, verify);
+
+router.get("/users", authMiddleware, users);
 
 router.post("/logout", authMiddleware, logout);
 

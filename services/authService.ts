@@ -50,22 +50,16 @@ export const registerUser = async (
   });
 
   if (existingUser) {
-    throw new Error("User already exists");
-  }
-
-  let hashedPassword: string | null = null;
-
-  if (data.password) {
-    hashedPassword = await bcrypt.hash(data.password, 10);
+    throw new Error("User already exists ,Try to Login");
   }
 
   const user = (await User.create({
     id: crypto.randomUUID(),
     name: data.name,
     email: data.email,
-    password: hashedPassword,
-    signedwith: data.signedwith,
-    info: data.info ?? {},
+    password: data.password,
+    signedwith: data.signedwith || "email",
+    info: data.info || { picture: "", Theme: "light", },
   })) as unknown as UserRecord;
 
   return user;
@@ -80,28 +74,25 @@ export const loginUser = async (
       email,
     },
   })) as UserRecord | null;
+  console.log("user",user);
+  
 
   if (!user) {
     throw new Error("User not found");
   }
 
   if (user.signedwith === "email") {
-    if (!password) {
+    if (!password || !user.password) {
       throw new Error("Password is required");
     }
 
-    if (!user.password) {
-      throw new Error("Invalid account");
-    }
-
-    const isPasswordValid = await bcrypt.compare(
-      password,
-      user.password
-    );
+    const isPasswordValid = password === user.password ;
+console.log("aaaaaaa",isPasswordValid,password,user.password);
 
     if (!isPasswordValid) {
       throw new Error("Invalid password");
     }
+
   }
 
   const token = generateToken({
@@ -119,6 +110,8 @@ export const googleLoginOrSignup = async (
   googleToken: string
 ) => {
   const payload = await verifyGoogleToken(googleToken);
+  console.log("payloadd",payload);
+  
 
   if (!payload.email) {
     throw new Error("Google account email not found");
@@ -138,6 +131,7 @@ export const googleLoginOrSignup = async (
       signedwith: "google",
       info: {
         picture: payload.picture,
+        Theme: "light",
       },
     }) as UserRecord;
   }
@@ -153,18 +147,3 @@ export const googleLoginOrSignup = async (
   };
 };
 
-export const getCurrentUser = async (
-  userId: string
-) => {
-  const user = await User.findByPk(userId, {
-    attributes: {
-      exclude: ["password"],
-    },
-  });
-
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  return user;
-};
