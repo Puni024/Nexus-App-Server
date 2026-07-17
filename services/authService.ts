@@ -73,9 +73,7 @@ export const loginUser = async (
     where: {
       email,
     },
-  })) as UserRecord | null;
-  console.log("user",user);
-  
+  })) as UserRecord | null;  
 
   if (!user) {
     throw new Error("User not found");
@@ -87,7 +85,6 @@ export const loginUser = async (
     }
 
     const isPasswordValid = password === user.password ;
-console.log("aaaaaaa",isPasswordValid,password,user.password);
 
     if (!isPasswordValid) {
       throw new Error("Invalid password");
@@ -109,9 +106,7 @@ console.log("aaaaaaa",isPasswordValid,password,user.password);
 export const googleLoginOrSignup = async (
   googleToken: string
 ) => {
-  const payload = await verifyGoogleToken(googleToken);
-  console.log("payloadd",payload);
-  
+  const payload = await verifyGoogleToken(googleToken);  
 
   if (!payload.email) {
     throw new Error("Google account email not found");

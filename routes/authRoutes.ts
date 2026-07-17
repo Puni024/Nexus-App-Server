@@ -11,6 +11,7 @@ import { users } from "../controllers/userController";
 import { googleLogin } from "../controllers/googleController";
 
 import { authMiddleware } from "../middleware/authMiddleware";
+import { adminAuthMiddleware } from "../middleware/adminauth";
 
 const router = Router();
 
@@ -33,7 +34,7 @@ router.post("/google", googleLogin);
 */
 router.get("/verify", authMiddleware, verify);
 
-router.get("/users", authMiddleware, users);
+router.get("/users", authMiddleware, adminAuthMiddleware, users);
 
 router.post("/logout", authMiddleware, logout);
 

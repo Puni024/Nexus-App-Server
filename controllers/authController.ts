@@ -61,7 +61,9 @@ export const logout = async (req: Request, res: Response) => {
 export const verify = async (req: AuthRequest, res: Response) => {
     if (req.user) {
         return res.status(200).json({
-            user: req.user.name,
+            user: {"name" : req.user?.name,
+                   "role" : req.user?.isAdmin ? "admin" : "user"
+                    },
             success: true,
             message: "User authenticated",
         });
