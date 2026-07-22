@@ -59,7 +59,14 @@ export const logout = async (req: Request, res: Response) => {
 };
 
 export const verify = async (req: AuthRequest, res: Response) => {
-    if (req.user) {
+    const db_user = await User.findOne({
+                where: {
+                    id: req.user?.id,
+                    name: req.user?.name,
+                    isAdmin: req.user?.isAdmin,
+                },
+                }) as UserType | null;  
+    if (db_user && req.user) {
         return res.status(200).json({
             user: {"name" : req.user?.name,
                    "role" : req.user?.isAdmin ? "admin" : "user"
