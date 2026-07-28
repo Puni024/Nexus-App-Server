@@ -4,14 +4,14 @@ import {
   login,
   logout,
   register,
-  verify,
+  verifyController,
+  updateProfile,
 } from "../controllers/authController";
 import { users } from "../controllers/userController";
 
 import { googleLogin } from "../controllers/googleController";
 
 import { authMiddleware } from "../middleware/authMiddleware";
-import { adminAuthMiddleware } from "../middleware/adminauth";
 
 const router = Router();
 
@@ -32,10 +32,12 @@ router.post("/google", googleLogin);
 | Protected Routes
 |--------------------------------------------------------------------------
 */
-router.get("/verify", authMiddleware, verify);
+router.get("/verify", authMiddleware, verifyController);
 
-router.get("/users", authMiddleware, adminAuthMiddleware, users);
+router.get("/users", authMiddleware, users);
 
 router.post("/logout", authMiddleware, logout);
+
+router.patch("/user/updateprofile", authMiddleware, updateProfile);
 
 export default router;

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { AuthRequest, UserType } from "../types/data";
+import { AuthRequest, UserType, JwtPayload, UpdateProfileBody } from "../types/data";
 import { loginUser, registerUser } from "../services/authService";
 import { COOKIE_OPTIONS } from "../services/cookies";
 import { User } from "../models";
@@ -58,27 +58,130 @@ export const logout = async (req: Request, res: Response) => {
     });
 };
 
-export const verify = async (req: AuthRequest, res: Response) => {
-    const db_user = await User.findOne({
-                where: {
-                    id: req.user?.id,
-                    name: req.user?.name,
-                    isAdmin: req.user?.isAdmin,
-                },
-                }) as UserType | null;  
-    if (db_user && req.user) {
+export const verifyController = async (req: AuthRequest, res: Response) => {
+    try {
+        const dbUser = await User.findByPk(req.user!.id, {
+            attributes: ["name", "email", "isAdmin", "info", "isVerified"],
+        });
+
+        if (!dbUser) {
+            return res.status(401).json({ success: false, message: "User not found" });
+        }
+
+        const plain = dbUser.get({ plain: true }) as {
+            name: string;
+            email:string;
+            isAdmin: boolean;
+            info: any;
+            isVerified: boolean;
+        };
+
         return res.status(200).json({
-            user: {"name" : req.user?.name,
-                   "role" : req.user?.isAdmin ? "admin" : "user"
-                    },
             success: true,
-            message: "User authenticated",
+            user: {
+                name: plain.name,
+                email: plain.email,
+                role: plain.isAdmin ? "admin" : "user",
+                info: plain.info,
+                isVerified: plain.isVerified,
+            },
         });
-    }
-    else {
-        return res.status(401).json({
+    } catch (err: any) {
+        return res.status(500).json({
             success: false,
-            message: "User not authenticated",
+            message: err.message,
         });
     }
-}
+};
+
+
+export const updateProfile = async (req: AuthRequest, res: Response) => {
+    try {
+        const { name, Theme, picture, newPassword } = req.body as UpdateProfileBody;
+
+        // nothing sent at all
+        if (
+            name === undefined &&
+            Theme === undefined &&
+            picture === undefined &&
+            newPassword === undefined
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "No fields provided to update.",
+            });
+        }
+
+        if (Theme !== undefined && Theme !== "light" && Theme !== "dark") {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Theme value. Must be 'light' or 'dark'.",
+            });
+        }
+
+        if (name !== undefined && !name.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: "Name cannot be empty.",
+            });
+        }
+
+        if (newPassword !== undefined && newPassword.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message: "New password must be at least 8 characters.",
+            });
+        }
+
+        const user = await User.findByPk(req.user!.id);
+
+        if (!user) {
+            return res.status(401).json({ success: false, message: "User not found" });
+        }
+
+        // block password change for Google-signed-up accounts (no local password to replace)
+        if (newPassword !== undefined && user.get("signedwith") !== "local") {
+            return res.status(400).json({
+                success: false,
+                message: "Password cannot be changed for accounts signed in with Google.",
+            });
+        }
+
+        // JSONB - Sequelize gives us a plain object directly, no parsing needed
+        const currentInfo = (user.get("info") as Record<string, any>) ?? {};
+
+        const updatedInfo = {
+            ...currentInfo,
+            ...(Theme !== undefined ? { Theme } : {}),
+            ...(picture !== undefined ? { picture } : {}),
+        };
+
+        const updatePayload: Record<string, any> = {
+            info: updatedInfo,
+        };
+
+        if (name !== undefined) {
+            updatePayload.name = name.trim();
+        }
+
+        if (newPassword !== undefined) {
+            updatePayload.password = newPassword ;
+        }
+
+        await user.update(updatePayload);
+
+        return res.status(200).json({
+            success: true,
+            user: {
+                name: user.get("name"),
+                Theme: updatedInfo.Theme ?? "light",
+                picture: updatedInfo.picture ?? "",
+            },
+        });
+    } catch (err: any) {
+        return res.status(500).json({
+            success: false,
+            message: err.message,
+        });
+    }
+};

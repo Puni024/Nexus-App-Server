@@ -12,6 +12,7 @@ import { seedDatabase } from "./models/seed";
 import "./models";
 
 import authRoutes from "./routes/authRoutes";
+import allRoutes from "./routes/admin/allRoutes"
 
 const app = express();
 
@@ -27,6 +28,8 @@ app.use(cookieParser());
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
+
+app.use("/api/admin", allRoutes)
 
 const PORT = process.env.PORT || 5000;
 

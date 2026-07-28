@@ -7,6 +7,14 @@ export interface JwtPayload {
   id: string;
   name: string;
   isAdmin: boolean;
+  isVerified :boolean ;
+}
+
+export interface UpdateProfileBody {
+    name?: string;
+    Theme?: string;
+    picture?: string;
+    newPassword?: string;
 }
 
 export interface UserType {

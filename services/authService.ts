@@ -21,6 +21,7 @@ interface UserRecord {
   signedwith: string;
   isAdmin: boolean;
   info?: any;
+  isVerified: boolean;
 }
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -96,8 +97,10 @@ export const loginUser = async (
     id: user.id,
     name: user.name,
     isAdmin: user.isAdmin,
+    isVerified:user.isVerified,
   });
 
+  
   return {
     token,
   };
@@ -135,6 +138,7 @@ export const googleLoginOrSignup = async (
     id: user.id,
     name: user.name,
     isAdmin: user.isAdmin,
+    isVerified:user.isVerified,
   });
 
   return {
