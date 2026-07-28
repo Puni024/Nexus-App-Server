@@ -135,6 +135,7 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
                 message: "New password must be at least 8 characters.",
             });
         }
+        
 
         const user = await User.findByPk(req.user!.id);
 
@@ -142,8 +143,15 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
             return res.status(401).json({ success: false, message: "User not found" });
         }
 
+        if (newPassword !== undefined && user.get("password") === newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Password cannot be same.",
+            });
+        }
+
         // block password change for Google-signed-up accounts (no local password to replace)
-        if (newPassword !== undefined && user.get("signedwith") !== "local") {
+        if (newPassword !== undefined && user.get("signedwith") === "google") {
             return res.status(400).json({
                 success: false,
                 message: "Password cannot be changed for accounts signed in with Google.",
@@ -175,11 +183,7 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
 
         return res.status(200).json({
             success: true,
-            user: {
-                name: user.get("name"),
-                Theme: updatedInfo.Theme ?? "light",
-                picture: updatedInfo.picture ?? "",
-            },
+            message: { name: user.get("name") + " password changed successfully"},
         });
     } catch (err: any) {
         return res.status(500).json({
