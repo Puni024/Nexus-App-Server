@@ -6,6 +6,7 @@ import {
   register,
   verifyController,
   updateProfile,
+  last_visit,
 } from "../controllers/authController";
 import { users } from "../controllers/userController";
 
@@ -39,5 +40,7 @@ router.get("/users", authMiddleware, users);
 router.post("/logout", authMiddleware, logout);
 
 router.patch("/user/updateprofile", authMiddleware, updateProfile);
+
+router.patch('/heartbeat',authMiddleware,last_visit)
 
 export default router;

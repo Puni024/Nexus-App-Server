@@ -22,7 +22,7 @@ export async function seedDatabase() {
     info: {},
     signedwith: "email",
     isVerified: true,
-    isActive: true,
+    last_visited: null,
   });
 
   console.log("✅ Admin created");

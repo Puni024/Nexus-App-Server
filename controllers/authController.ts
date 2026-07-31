@@ -22,14 +22,14 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
     try {
-        
+
         // Cast via unknown to satisfy TypeScript when using the ORM model return type
         const user = await User.findOne({ where: { email: req.body.email } }) as unknown as UserType | null;
-        
+
         if (user?.signedwith === "google") {
             throw new Error("Invalid Credentials");
         }
-        
+
         const { token } = await loginUser(
             req.body.email,
             req.body.password
@@ -73,7 +73,7 @@ export const verifyController = async (req: AuthRequest, res: Response) => {
 
         const plain = dbUser.get({ plain: true }) as {
             name: string;
-            email:string;
+            email: string;
             isAdmin: boolean;
             info: any;
             isVerified: boolean;
@@ -135,7 +135,7 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
                 message: "New password must be at least 8 characters.",
             });
         }
-        
+
 
         const user = await User.findByPk(req.user!.id);
 
@@ -190,5 +190,27 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
             success: false,
             message: err.message,
         });
+    }
+};
+
+export const last_visit = async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+
+        await User.update(
+            { last_visited: new Date() },
+            { where: { id: userId } }
+        );
+console.log(`updated time ${req.user?.name}`, new Date());
+
+        return res.sendStatus(200);
+
+    } catch (error) {
+        console.error("Heartbeat update failed:", error);
+        return res.sendStatus(500);
     }
 };

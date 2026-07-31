@@ -36,18 +36,18 @@ const User = sequelize.define(
         },
         isVerified: {
             type: DataTypes.BOOLEAN,
-            defaultValue: false,   
-        },
-        isActive: {
-            type: DataTypes.BOOLEAN,
             defaultValue: false,
+        },
+        last_visited: {
+            type: DataTypes.DATE,
+            defaultValue: DataTypes.NOW,
         },
 
     },
     {
-    tableName: "users",
-    timestamps: false,
-  }
+        tableName: "users",
+        timestamps: false,
+    }
 );
 
 export default User;

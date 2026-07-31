@@ -43,7 +43,7 @@ const PORT = process.env.PORT || 5000;
     await sequelize.sync();
     console.log("✅ Database synchronized successfully");
     
-    await seedDatabase();
+    // await seedDatabase();
     console.log("✅ Tables synchronized");
 
     app.listen(PORT, () => {

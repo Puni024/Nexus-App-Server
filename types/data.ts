@@ -26,7 +26,7 @@ export interface UserType {
     info?: JSON,
     signedwith: signedwith_type,
     isVerified?: boolean,
-    isActive?: boolean,
+    last_visited?: string,
 }
 export interface AuthRequest extends Request {
   user?: JwtPayload;
