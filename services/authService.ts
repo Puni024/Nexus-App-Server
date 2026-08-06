@@ -88,7 +88,7 @@ export const loginUser = async (
     const isPasswordValid = password === user.password ;
 
     if (!isPasswordValid) {
-      throw new Error("Invalid password");
+      throw new Error("Invalid Credentials");
     }
 
   }

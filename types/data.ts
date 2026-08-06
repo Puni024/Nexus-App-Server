@@ -30,4 +30,5 @@ export interface UserType {
 }
 export interface AuthRequest extends Request {
   user?: JwtPayload;
+  file?: Express.Multer.File;
 }

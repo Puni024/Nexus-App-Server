@@ -205,7 +205,6 @@ export const last_visit = async (req: AuthRequest, res: Response) => {
             { last_visited: new Date() },
             { where: { id: userId } }
         );
-console.log(`updated time ${req.user?.name}`, new Date());
 
         return res.sendStatus(200);
 
