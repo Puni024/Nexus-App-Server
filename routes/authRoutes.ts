@@ -10,13 +10,14 @@ import {
   last_visit,
 } from "../controllers/authController";
 
-import { nl_contribution, nl_contribution_details } from "../controllers/newsletterController";
+import { nl_contribution, nl_contribution_details, published_nl } from "../controllers/newsletterController";
 
 import { users } from "../controllers/userController";
 
 import { googleLogin } from "../controllers/googleController";
 
 import { authMiddleware } from "../middleware/authMiddleware";
+import { streamFile } from "../controllers/fileStreamController";
 
 const router = Router();
 
@@ -52,7 +53,13 @@ router.patch('/heartbeat',authMiddleware,last_visit);
 
 router.get('/newsletters',authMiddleware,nl_contribution_details);
 
+router.get('/newsletters/published',authMiddleware,published_nl);
+
 router.post('/newsletter/contribute',authMiddleware, upload.single("file"),nl_contribution);
+
+
+//files
+router.get("/files/:file_id/stream", authMiddleware, streamFile);
 
 
 export default router;

@@ -248,3 +248,33 @@ export const togglePublish = async (req: AuthRequest, res: Response) => {
         return res.status(500).json({ success: false, message: err.message });
     }
 };
+
+export const published_nl = async (req: AuthRequest, res: Response) => {
+    try {
+        const newsletters = await Newsletter.findAll({
+            where: { is_published: true },
+            order: [["uploaded_at", "DESC"]],
+            include: [
+                {
+                    model: File,
+                    as: "File",
+                    attributes: ["file_id", "file_name", "file_url"],
+                },
+                {
+                    model: User,
+                    as: "SubmittedBy",
+                    attributes: ["id", "name", "email", "info"],
+                },
+                {
+                    model: User,
+                    as: "ApprovedBy",
+                    attributes: ["id", "name", "email"],
+                },
+            ],
+        });
+
+        return res.status(200).json({ success: true, data: newsletters });
+    } catch (err: any) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
