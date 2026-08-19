@@ -37,7 +37,7 @@ export async function getNotifications(req: AuthRequest, res: Response) {
         const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
 
         const notifications = await Notification.findAll({
-            where: { userId },
+            where: { userId, isRead: false },
             order: [["createdAt", "DESC"]],
             limit,
         });

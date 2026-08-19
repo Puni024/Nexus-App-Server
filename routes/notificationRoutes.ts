@@ -16,8 +16,9 @@ router.get("/unread-count", authMiddleware, getUnreadCount);
 
 router.get("/", authMiddleware, getNotifications);
 
-router.patch("/:id/read", authMiddleware, markNotificationAsRead);
 
 router.patch("/read-all", authMiddleware, markAllNotificationsAsRead);
+
+router.patch("/:id/read", authMiddleware, markNotificationAsRead);
 
 export default router;
