@@ -4,6 +4,7 @@ import { sequelize } from "../config/db";
 import { AuthRequest } from "../types/data";
 
 import { uploadFile } from "../services/cloudinary/cloudinary.service";
+import { notifyAllAdmins, notifyAllUsers, createNotification } from "../services/notificationService";
 
 import { File, User } from "../models";
 import Newsletter from "../models/Newsletter";
@@ -44,14 +45,8 @@ export const nl_contribution = async (
             });
         }
 
-        /**
-         * Upload file to Cloudinary
-         */
         const uploadedFile = await uploadFile(req.file);
 
-        /**
-         * Save file details
-         */
         const createdFile = await File.create(
             {
                 file_name: req.file.originalname,
@@ -62,9 +57,6 @@ export const nl_contribution = async (
             }
         );
 
-        /**
-         * Save newsletter
-         */
         const newsletter = await Newsletter.create(
             {
                 title,
@@ -77,6 +69,19 @@ export const nl_contribution = async (
         );
 
         await transaction.commit();
+
+        try {
+            await notifyAllAdmins({
+                type: "newsletter_submitted",
+                title: "New newsletter awaiting approval",
+                message: `${req.user.name ?? "Someone"} submitted "${title}" for review.`,
+                entityType: "newsletter",
+                entityId: newsletter.getDataValue("newsletter_id") as string,
+                excludeUserId: req.user.id,
+            });
+        } catch (notifyErr) {
+            console.error("Failed to notify admins of new submission:", notifyErr);
+        }
 
         return res.status(201).json({
             success: true,
@@ -191,6 +196,22 @@ export const approveNewsletter = async (req: AuthRequest, res: Response) => {
             approved_by: req.user?.id,
         });
 
+        try {
+            const submittedBy = newsletter.getDataValue("submitted_by") as string;
+            if (submittedBy) {
+                await createNotification({
+                    userId: submittedBy,
+                    type: "newsletter_approved",
+                    title: "Your newsletter was approved",
+                    message: `"${newsletter.getDataValue("title")}" has been approved.`,
+                    entityType: "newsletter",
+                    entityId: newsletter.getDataValue("newsletter_id") as string,
+                });
+            }
+        } catch (notifyErr) {
+            console.error("Failed to notify submitter of approval:", notifyErr);
+        }
+
         return res.status(200).json({ success: true, message: "Submission approved" });
     } catch (err: any) {
         return res.status(500).json({ success: false, message: err.message });
@@ -203,19 +224,49 @@ export const rejectNewsletter = async (req: AuthRequest, res: Response) => {
         const { id } = req.params;
 
         const newsletter = await Newsletter.findByPk(id);
+
         if (!newsletter) {
-            return res.status(404).json({ success: false, message: "Submission not found" });
+            return res.status(404).json({
+                success: false,
+                message: "Submission not found",
+            });
         }
 
         await newsletter.update({
             status: "REJECTED",
             approved_by: req.user?.id,
-            is_published: false, // a rejected submission can't stay published
+            is_published: false,
         });
 
-        return res.status(200).json({ success: true, message: "Submission rejected" });
+        try {
+            const submittedBy = newsletter.getDataValue("submitted_by") as string;
+
+            if (submittedBy) {
+                await createNotification({
+                    userId: submittedBy,
+                    type: "newsletter_rejected",
+                    title: "Your newsletter was rejected",
+                    message: `"${newsletter.getDataValue("title")}" has been rejected.`,
+                    entityType: "newsletter",
+                    entityId: newsletter.getDataValue("newsletter_id") as string,
+                });
+            }
+        } catch (notifyErr) {
+            console.error(
+                "Failed to notify submitter of rejection:",
+                notifyErr
+            );
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Submission rejected",
+        });
     } catch (err: any) {
-        return res.status(500).json({ success: false, message: err.message });
+        return res.status(500).json({
+            success: false,
+            message: err.message,
+        });
     }
 };
 
@@ -238,6 +289,21 @@ export const togglePublish = async (req: AuthRequest, res: Response) => {
 
         const nextValue = !newsletter.get("is_published");
         await newsletter.update({ is_published: nextValue });
+
+        if (nextValue) {
+            try {
+                await notifyAllUsers({
+                    type: "newsletter_published",
+                    title: "New newsletter published",
+                    message: `"${newsletter.getDataValue("title")}" is now available.`,
+                    entityType: "newsletter",
+                    entityId: newsletter.getDataValue("newsletter_id") as string,
+                    excludeUserId: req.user?.id,
+                });
+            } catch (notifyErr) {
+                console.error("Failed to notify users of publish:", notifyErr);
+            }
+        }
 
         return res.status(200).json({
             success: true,

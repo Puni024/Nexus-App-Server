@@ -5,8 +5,7 @@ import { AuthRequest } from "../types/data";
 export const users = async (req: AuthRequest, res: Response) => {
     try {
         const { fields } = req.query;
-        console.log("raw fields query:", fields, typeof fields); // <-- add this
-
+        
         const FORBIDDEN_FIELDS = ["password"];
         const ALLOWED_FIELDS = ["id", "name", "email", "profile", "isAdmin", "info", "signed_with", "isVerified", "last_visited"];
 
@@ -18,14 +17,10 @@ export const users = async (req: AuthRequest, res: Response) => {
                 .map((f) => f.trim())
                 .filter((f) => ALLOWED_FIELDS.includes(f) && !FORBIDDEN_FIELDS.includes(f));
 
-            console.log("filtered requested:", requested); // <-- add this
-
             if (requested.length > 0) {
                 attributes = requested;
             }
         }
-
-        console.log("final attributes:", attributes); // <-- add this
 
         const usersList = req.user?.isAdmin
             ? await User.findAll({ attributes })

@@ -13,7 +13,8 @@ import { seedDatabase } from "./models/seed";
 import "./models";
 
 import authRoutes from "./routes/authRoutes";
-import allRoutes from "./routes/admin/allRoutes"
+import allRoutes from "./routes/admin/allRoutes";
+import notificationRoutes from "./routes/notificationRoutes";
 
 const app = express();
 
@@ -30,7 +31,9 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 
-app.use("/api/admin", allRoutes)
+app.use("/api/admin", allRoutes);
+
+app.use("/api/notifications", notificationRoutes);
 
 const PORT = process.env.PORT || 5000;
 
@@ -44,7 +47,7 @@ const PORT = process.env.PORT || 5000;
     await sequelize.sync();
     console.log("✅ Database synchronized successfully");
     
-    // await seedDatabase();
+    await seedDatabase();
     console.log("✅ Tables synchronized");
 
     app.listen(PORT, () => {

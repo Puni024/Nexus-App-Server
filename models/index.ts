@@ -1,6 +1,7 @@
 import User from "./User";
 import Newsletter from "./Newsletter";
 import File from "./File";
+import Notification from "./Notification";
 
 // Newsletter -> File
 Newsletter.belongsTo(File, {
@@ -23,8 +24,14 @@ Newsletter.belongsTo(User, {
   as: "ApprovedBy",
 });
 
+//Notification ->User
+
+User.hasMany(Notification, { foreignKey: "userId", as: "notifications" });
+Notification.belongsTo(User, { foreignKey: "userId", as: "user" });
+
 export {
   User,
   File,
   Newsletter,
+  Notification,
 };

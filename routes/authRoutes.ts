@@ -7,7 +7,7 @@ import {
   register,
   verifyController,
   updateProfile,
-  last_visit,
+  // last_visit,
 } from "../controllers/authController";
 
 import { nl_contribution, nl_contribution_details, published_nl } from "../controllers/newsletterController";
@@ -46,7 +46,7 @@ router.post("/logout", authMiddleware, logout);
 
 router.patch("/user/updateprofile", authMiddleware, updateProfile);
 
-router.patch('/heartbeat',authMiddleware,last_visit);
+// router.patch('/heartbeat',authMiddleware,last_visit);
 
 
 //Newsletter Routes

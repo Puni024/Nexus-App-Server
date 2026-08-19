@@ -193,23 +193,23 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
     }
 };
 
-export const last_visit = async (req: AuthRequest, res: Response) => {
-    try {
-        const userId = req.user?.id;
+// export const last_visit = async (req: AuthRequest, res: Response) => {
+//     try {
+//         const userId = req.user?.id;
 
-        if (!userId) {
-            return res.status(401).json({ message: "Unauthorized" });
-        }
+//         if (!userId) {
+//             return res.status(401).json({ message: "Unauthorized" });
+//         }
 
-        await User.update(
-            { last_visited: new Date() },
-            { where: { id: userId } }
-        );
+//         await User.update(
+//             { last_visited: new Date() },
+//             { where: { id: userId } }
+//         );
 
-        return res.sendStatus(200);
+//         return res.sendStatus(200);
 
-    } catch (error) {
-        console.error("Heartbeat update failed:", error);
-        return res.sendStatus(500);
-    }
-};
+//     } catch (error) {
+//         console.error("Heartbeat update failed:", error);
+//         return res.sendStatus(500);
+//     }
+// };
