@@ -41,6 +41,7 @@ export async function getNotifications(req: AuthRequest, res: Response) {
             order: [["createdAt", "DESC"]],
             limit,
         });
+        
 
         res.json({ notifications });
     } catch (err) {
