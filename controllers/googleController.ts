@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { googleLoginOrSignup } from "../services/authService";
-import { COOKIE_OPTIONS } from "../services/cookies";
+import { COOKIE_OPTIONS, REFRESH_COOKIE_OPTIONS } from "../services/cookies";
 
 export const googleLogin = async (
   req: Request,
@@ -16,11 +16,12 @@ export const googleLogin = async (
       });
     }
 
-    const { token } = await googleLoginOrSignup(
+    const { token, refreshToken } = await googleLoginOrSignup(
       googleToken
     );
 
     res.cookie("token", token, COOKIE_OPTIONS);
+    res.cookie("refreshToken", refreshToken, REFRESH_COOKIE_OPTIONS);
 
     return res.status(200).json({
       success: true,
@@ -33,4 +34,3 @@ export const googleLogin = async (
     });
   }
 };
-

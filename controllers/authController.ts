@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { AuthRequest, UserType, JwtPayload, UpdateProfileBody } from "../types/data";
-import { loginUser, registerUser } from "../services/authService";
-import { COOKIE_OPTIONS } from "../services/cookies";
+import { loginUser, registerUser, refreshAccessToken } from "../services/authService";
+import { COOKIE_OPTIONS, REFRESH_COOKIE_OPTIONS } from "../services/cookies";
 import { User } from "../models";
 
 export const register = async (req: Request, res: Response) => {
@@ -30,12 +30,13 @@ export const login = async (req: Request, res: Response) => {
             throw new Error("Invalid Credentials");
         }
 
-        const { token } = await loginUser(
+        const { token, refreshToken } = await loginUser(
             req.body.email,
             req.body.password
         );
 
         res.cookie("token", token, COOKIE_OPTIONS);
+        res.cookie("refreshToken", refreshToken, REFRESH_COOKIE_OPTIONS);
 
         return res.status(200).json({
             success: true,
@@ -49,11 +50,39 @@ export const login = async (req: Request, res: Response) => {
     }
 };
 
+
+export const refresh = async (req: Request, res: Response) => {
+    try {
+        const { token, refreshToken } = await refreshAccessToken(req.cookies.refreshToken);
+
+        res.cookie("token", token, COOKIE_OPTIONS);
+        res.cookie("refreshToken", refreshToken, REFRESH_COOKIE_OPTIONS);
+
+        return res.status(200).json({
+            success: true,
+            message: "Token refreshed",
+        });
+    } catch (err: any) {
+
+        const { maxAge: _a, ...clearAccessOptions } = COOKIE_OPTIONS;
+        const { maxAge: _r, ...clearRefreshOptions } = REFRESH_COOKIE_OPTIONS;
+        res.clearCookie("token", clearAccessOptions);
+        res.clearCookie("refreshToken", clearRefreshOptions);
+
+        return res.status(401).json({
+            success: false,
+            message: err.message,
+        });
+    }
+};
+
 export const logout = async (req: Request, res: Response) => {
 
     const { maxAge, ...clearCookieOptions } = COOKIE_OPTIONS;
+    const { maxAge: refreshMaxAge, ...clearRefreshCookieOptions } = REFRESH_COOKIE_OPTIONS;
 
     res.clearCookie("token", clearCookieOptions);
+    res.clearCookie("refreshToken", clearRefreshCookieOptions);
 
     return res.status(200).json({
         success: true,
@@ -102,7 +131,7 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
     try {
         const { name, Theme, picture, newPassword } = req.body as UpdateProfileBody;
 
-        // nothing sent at all
+
         if (
             name === undefined &&
             Theme === undefined &&
@@ -150,7 +179,7 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
             });
         }
 
-        // block password change for Google-signed-up accounts (no local password to replace)
+
         if (newPassword !== undefined && user.get("signedwith") === "google") {
             return res.status(400).json({
                 success: false,
@@ -192,24 +221,3 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
         });
     }
 };
-
-// export const last_visit = async (req: AuthRequest, res: Response) => {
-//     try {
-//         const userId = req.user?.id;
-
-//         if (!userId) {
-//             return res.status(401).json({ message: "Unauthorized" });
-//         }
-
-//         await User.update(
-//             { last_visited: new Date() },
-//             { where: { id: userId } }
-//         );
-
-//         return res.sendStatus(200);
-
-//     } catch (error) {
-//         console.error("Heartbeat update failed:", error);
-//         return res.sendStatus(500);
-//     }
-// };

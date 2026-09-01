@@ -5,6 +5,8 @@ import { AuthRequest } from "../types/data";
 import File from "../models/File";
 
 export const streamFile = async (req: AuthRequest, res: Response) => {
+    console.log("entered 222");
+    
     try {
         const { file_id } = req.params;
 

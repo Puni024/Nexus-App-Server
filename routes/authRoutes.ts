@@ -7,6 +7,7 @@ import {
   register,
   verifyController,
   updateProfile,
+  refresh,
   // last_visit,
 } from "../controllers/authController";
 
@@ -33,11 +34,10 @@ router.post("/login", login);
 
 router.post("/google", googleLogin);
 
-/*
-|--------------------------------------------------------------------------
-| Protected Routes
-|--------------------------------------------------------------------------
-*/
+router.post("/refresh", refresh);
+
+// Protected Routes
+
 router.get("/verify", authMiddleware, verifyController);
 
 router.get("/users", authMiddleware, users);
