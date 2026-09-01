@@ -8,7 +8,7 @@ import cookieParser from "cookie-parser";
 
 import { sequelize } from "./config/db";
 import { initDB } from "./config/initDB";
-import { seedDatabase } from "./models/seed";
+// import { seedDatabase } from "./models/seed";
 
 import "./models";
 
@@ -47,7 +47,7 @@ const PORT = process.env.PORT || 5000;
     await sequelize.sync();
     console.log("✅ Database synchronized successfully");
     
-    await seedDatabase();
+    // await seedDatabase();
     console.log("✅ Tables synchronized");
 
     app.listen(PORT, () => {
