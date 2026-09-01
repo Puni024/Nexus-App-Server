@@ -23,7 +23,6 @@ export const authMiddleware = (
     next();
   } catch (err) {
     if (err instanceof jwt.TokenExpiredError) {
-      console.log("aaaaaaa");
       
       return res.status(401).json({
         success: false,

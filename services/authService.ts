@@ -42,7 +42,7 @@ export const registerUser = async (
   const existingUser = await User.findOne({ where: { email: data.email } });
 
   if (existingUser) {
-    throw new Error("User already exists ,Try to Login");
+    throw new Error("User already exists");
   }
 
   const user = (await User.create({
